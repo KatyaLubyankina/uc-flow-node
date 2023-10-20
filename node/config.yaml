@@ -1,22 +1,23 @@
-service_name: "TestApp"
+service_name: '3ab2fd9e-c71b-4094-9ff1-54dbb56479db'
+
 http:
-    url: http://0.0.0.0:9000
-    cors:
-        access_control_allow_headers:
-            - Content-Type
-            - Cache-Control
-            - Authorization
-            - X-Total-Count
-        access_control_allow_origin:
-            - https://go2.comagic.ru
+  url: http://0.0.0.0:9000
+  cors:
+    access_control_allow_headers:
+      - Content-Type
+      - Cache-Control
+      - Authorization
+      - X-Total-Count
+    access_control_allow_origin:
+      - https://go2.uiscom.ru
+
 uc_flow_node:
-    register_on_start: false
-    execute_view_queue_size: 500
-    execute_view_workers: 5
-    private_url: https://bc90-178-209-118-100.ngrok.io
-    public_url: https://bc90-178-209-118-100.ngrok.io
-    uc_flow:
-        domain: https://uc-flow-v2-prod-api.uis.st
-        jwt_secret: 9109a79d-74f9-45bd-b369-5e7a885421e5
-version: "2"
-region: us
+  register_on_start: false
+  execute_view_queue_size: 500
+  execute_view_workers: 5
+  private_url: https://8abb-5-18-165-119.ngrok.io
+  public_url: https://8abb-5-18-165-119.ngrok.io
+  uc_flow:
+    domain: https://uc-flow-v2-pp-api.comagic.ru
+    jwt_secret: adakadlk293
+
