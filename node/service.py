@@ -1,47 +1,95 @@
-import ujson
-from typing import List, Tuple, Any
+from typing import List
+
+from pydantic import SecretStr
+from uc_flow_schemas import flow
+from uc_flow_schemas.flow import (
+    Property,
+    NodeType as BaseNodeType, DisplayOptions, OptionValue,
+)
+
+from typing import List
 
 from uc_flow_nodes.schemas import NodeRunContext
 from uc_flow_nodes.service import NodeService
 from uc_flow_nodes.views import info, execute
 from uc_flow_schemas import flow
-from uc_flow_schemas.flow import Property, CredentialProtocol, RunState, OptionValue
-from uc_http_requester.requester import Request
+from uc_flow_schemas.flow import Property, RunState, OptionValue
+
 
 
 class NodeType(flow.NodeType):
-    id: str = '3ab2fd9e-c71b-4094-9ff1-54dbb56479db'
-    type: flow.NodeType.Type = flow.NodeType.Type.action
-    name: str = 'Сalculator'
-    displayName: str = 'Сalculator'
+    id: str = '5d684caf-1c2a-40b0-a8cd-97026720de97'
+    secret: SecretStr = '999'
+    type: BaseNodeType.Type = BaseNodeType.Type.action
+    displayName: str = 'New_hollihop'
+    group: List[str] = ["integration"]
+    version: int = 1
     icon: str = '<svg><text x="8" y="50" font-size="50">🤖</text></svg>'
-    description: str = 'Calculate sum of string and number'
+    description: str = 'action'
+    inputs: List[str] = ['main']
+    outputs: List[str] = ['main']
     properties: List[Property] = [
         Property(
-            displayName='Текстовое поле',
-            name='first_number',
-            type=Property.Type.STRING,
-            placeholder='Введите первое число',
-            description='String',
-            required=True,
-            default='0',
-        ),
-        Property(
-            displayName='Числовое поле',
-            name='second_number',
-            type=Property.Type.NUMBER,
-            placeholder='Введите второе число',
-            description='Number',
-            required=True,
-            default=0,
-        ),
-        Property(
-            displayName='Формат ответа',
-            name='answer_format',
+            displayName='Первое поле',
+            name='first_field',
             type=Property.Type.OPTIONS,
-            description='Format',
-            required=True,
-            options=[OptionValue(name='Строка',value='string'),OptionValue(name='Число', value='number')],
+            noDataExpression=True,
+            options=[
+                OptionValue(
+                    name='Значение 1',
+                    value = 'first_field_first_option',
+                    description='Значение 1'
+                ),
+                OptionValue(
+                    name='Значение 2',
+                    value='first_field_second_option',
+                    description='Значение 2'
+                )
+            ],
+        ),
+        Property(
+            displayName='Второе поле',
+            name='second_field',
+            type=Property.Type.OPTIONS,
+            noDataExpression=True,
+            options=[
+                OptionValue(
+                    name='Значение 1',
+                    value = 'second_field_first_option',
+                    description='Значение 1',
+                ),
+                OptionValue(
+                    name='Значение 2',
+                    value='second_field_second_option',
+                    description='Значение 2',
+                ),
+            ]
+        ),
+        Property(
+            displayName='Поле для ввода почты',
+            name='email',
+            type=Property.Type.EMAIL,
+            noDataExpression=True,
+            displayOptions=DisplayOptions(
+                show={
+                    'first_field': [
+                       'first_field_first_option'
+                    ],'second_field':['second_field_first_option']
+                },
+            ),
+        ),
+        Property(
+            displayName=' Поле для ввода даты и времени',
+            name='email',
+            type=Property.Type.DATETIME,
+            noDataExpression=True,
+            displayOptions=DisplayOptions(
+                show={
+                    'first_field': [
+                       'first_field_second_option'
+                    ],'second_field':['second_field_second_option']
+                },
+            ),
         )
     ]
 
@@ -53,28 +101,7 @@ class InfoView(info.Info):
 
 class ExecuteView(execute.Execute):
     async def post(self, json: NodeRunContext) -> NodeRunContext:
-        first_number = json.node.data.properties['first_number']
-        second_number = json.node.data.properties['second_number']
-        answer_format = json.node.data.properties['answer_format']
-        try:
-            first_number = int(first_number)
-        except Exception as e:
-            self.log.warning(f'Error {e}')
-            await json.save_error(str(e))
-            json.state = RunState.error
-        else:
-            try:
-                summ = first_number + second_number
-                if answer_format == 'string':
-                    summ = str(summ)
-                await json.save_result({
-                    "result": summ
-                })
-                json.state = RunState.complete
-            except Exception as e:
-                self.log.warning(f'Error {e}')
-                await json.save_error(str(e))
-                json.state = RunState.error
+        json.state = RunState.complete
         return json
 
 
