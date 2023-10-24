@@ -18,7 +18,7 @@ from uc_flow_schemas.flow import Property, RunState, OptionValue
 
 
 class NodeType(flow.NodeType):
-    id: str = '5d684caf-1c2a-40b0-a8cd-97026720de97'
+    id: str = '2312fe16-d792-4ed0-8b2b-81ed0bfecdd0'
     secret: SecretStr = '999'
     type: BaseNodeType.Type = BaseNodeType.Type.action
     displayName: str = 'New_hollihop'
@@ -29,6 +29,11 @@ class NodeType(flow.NodeType):
     inputs: List[str] = ['main']
     outputs: List[str] = ['main']
     properties: List[Property] = [
+        Property(
+            displayName='Переключатель',
+            name='switch',
+            type=Property.Type.BOOLEAN,
+        ),
         Property(
             displayName='Первое поле',
             name='first_field',
@@ -46,6 +51,13 @@ class NodeType(flow.NodeType):
                     description='Значение 2'
                 )
             ],
+            displayOptions=DisplayOptions(
+                show={
+                    'switch': [
+                    True
+                    ]
+                },
+            ),
         ),
         Property(
             displayName='Второе поле',
@@ -63,7 +75,14 @@ class NodeType(flow.NodeType):
                     value='second_field_second_option',
                     description='Значение 2',
                 ),
-            ]
+            ],
+            displayOptions=DisplayOptions(
+                show={
+                    'switch': [
+                    True
+                    ]
+                },
+            ),
         ),
         Property(
             displayName='Поле для ввода почты',
