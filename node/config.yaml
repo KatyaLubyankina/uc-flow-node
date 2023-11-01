@@ -1,4 +1,4 @@
-service_name: '2312fe16-d792-4ed0-8b2b-81ed0bfecdd0'
+service_name: '6d3ef24c-5674-4d13-8167-0fc554fe6582'
 
 http:
   url: http://0.0.0.0:9000
@@ -15,8 +15,8 @@ uc_flow_node:
   register_on_start: false
   execute_view_queue_size: 500
   execute_view_workers: 5
-  private_url: https://58be-5-18-165-119.ngrok.io
-  public_url: https://58be-5-18-165-119.ngrok.io
+  private_url: https://f3cc-5-18-165-119.ngrok.io 
+  public_url: https://f3cc-5-18-165-119.ngrok.io 
   uc_flow:
     domain: https://uc-flow-v2-pp-api.comagic.ru
     jwt_secret: adakadlk293
