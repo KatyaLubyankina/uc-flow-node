@@ -1,184 +1,118 @@
 from typing import List
 
+from pydantic import SecretStr
+from uc_flow_schemas import flow
+from uc_flow_schemas.flow import (
+    Property,
+    NodeType as BaseNodeType, DisplayOptions, OptionValue,
+)
+
+from typing import List
+
 from uc_flow_nodes.schemas import NodeRunContext
 from uc_flow_nodes.service import NodeService
 from uc_flow_nodes.views import info, execute
 from uc_flow_schemas import flow
 from uc_flow_schemas.flow import Property, RunState, OptionValue
-from typing import List
-import requests
-from pydantic import SecretStr
-from uc_flow_schemas import flow
-from uc_flow_schemas.flow import (
-    Property,
-    NodeType as BaseNodeType, OptionValue,
-    DisplayOptions
-)
-from node.enums import Option, Operation, Parameters, Authentication
+from node.execute import get_request, validate_response
 from uc_http_requester.requester import Request
-from node.execute import validate_response, get_request, get_request_params
+import urllib.parse
 
 class NodeType(flow.NodeType):
-    id: str = '6d3ef24c-5674-4d13-8167-0fc554fe6582'
+    id: str = 'bc74cb31-9d39-4b5f-ade9-e57aad736f1b'
     secret: SecretStr = '999'
     type: BaseNodeType.Type = BaseNodeType.Type.action
-    displayName: str = 'AlfaCRM_node'
+    displayName: str = 'Ydisk_node'
     group: List[str] = ["integration"]
     version: int = 1
     icon: str = '<svg><text x="8" y="50" font-size="50">🤖</text></svg>'
-    description: str = 'Authentication for AlfaCRM'
+    description: str = 'action'
     inputs: List[str] = ['main']
     outputs: List[str] = ['main']
     properties: List[Property] = [
         Property(
-            displayName='Option',
-            name='option',
-            required=True,
-            type=Property.Type.OPTIONS,
-            options = [
-                OptionValue(name='Authentication',value=Option.authentication),
-                OptionValue(name='Customer', value=Option.customer)
-            ]
-        ),
-        Property(
-            displayName='CRM hostname',
-            name=Authentication.host_name,
-            default='uiscom.s20.online',
-            required=True,
-            type=Property.Type.STRING,
-        ),
-        Property(
-            displayName='Email',
-            name=Authentication.email,
-            required=True,
-            type=Property.Type.EMAIL,
-            default='vehemop789@weirby.com',
-            displayOptions=DisplayOptions(
-                show={
-                    'option': [
-                    Option.authentication
-                    ]
-                },
-            ),
-        ),
-        Property(
-            displayName='API key(v2api)',
-            name=Authentication.key,
-            required=True,
-            type=Property.Type.STRING,
-            default='7acaf091-77b5-11ee-8640-3cecef7ebd64',
-            displayOptions=DisplayOptions(
-                show={
-                    'option': [
-                    Option.authentication
-                    ]
-                },
-            ),
-        ),
-        Property(
-            displayName='Token',
-            name='token',
-            type=Property.Type.JSON,
-            required=True,
-            displayOptions=DisplayOptions(
-                show={
-                    'option': [
-                    Option.customer
-                    ]
-                },
-            )
-        ),
-        Property(            
             displayName='Operation',
             name='operation',
-            required=True,
             type=Property.Type.OPTIONS,
+            required=True,
             options=[
                 OptionValue(
-                    name='Index',
-                    value=Operation.index,   
-                    description='Чтение списка с фильтрацией и  пейджинация',
+                    name='Upload file',
+                    value = 'upload',
+                    description='Загрузить файл на Яндекс Диск'
                 ),
                 OptionValue(
-                    name='Create',
-                    value=Operation.create,
-                    description='Создание новой модели',
-                ),
-                OptionValue(
-                    name='Update',
-                    value=Operation.update,   
-                    description='Изменение свойств модели',
-                ),
+                    name='Get list of files',
+                    value='get',
+                    description='Получить список всех файлов'
+                )
             ],
-            displayOptions=DisplayOptions(
-                show={
-                    'option': [
-                    Option.customer
-                    ]
-                },
-            ),
-        
         ),
         Property(
-            displayName='Branch',
-            name='branch',
-            type=Property.Type.NUMBER,
+            displayName='Authentication token',
+            name='token',
+            type=Property.Type.STRING,
+            description='Токен доступа к Яндекс Диск',
             required=True,
-            default=1,
-            displayOptions=DisplayOptions(
-                show={
-                    'option': [
-                    Option.customer
-                    ]
-                },
-            )
         ),
         Property(
-            displayName='Parameters',
-            name='parameters',
-            type=Property.Type.COLLECTION,
-            placeholder='Add',
-            default={},
+            displayName='External file url',
+            name='url',
+            type=Property.Type.JSON,
+            description='URL внешнего ресурса, который следует загрузить',
+            required=True,
             displayOptions=DisplayOptions(
                 show={
                     'operation': [
-                    Operation.index, Operation.create, Operation.update
+                    'upload'
                     ]
                 },
             ),
+        ),
+        Property(
+            displayName='Path to file in Ydisk',
+            name='path',
+            type=Property.Type.STRING,
+            required=True,
+            description='Путь, куда будет помещён ресурс, включая название и расширение',
+            displayOptions=DisplayOptions(
+                show={
+                    'operation': [
+                    'upload'
+                    ]
+                },
+            ),
+        ),
+        Property(
+            displayName='Type of files sorting',
+            name='sorting',
+            required=True,
+            type=Property.Type.OPTIONS,
+            description='Выберите тип сортировки',
             options=[
-                Property(
-                    displayName='Is_study',
-                    name=Parameters.is_study,
-                    type=Property.Type.BOOLEAN,
-                    description='Состояние клиента (0-лид, 1 - клиент)',
-                ),
-                Property(
-                    displayName='ID',
-                    name=Parameters.id,
-                    type=Property.Type.NUMBER,
-                    default = '',
-                    description='Полное имя',
-                ),
-                Property(
-                    displayName='Name',
-                    name=Parameters.name,
-                    type=Property.Type.STRING,
-                    description='Имя клиента',
-                ),
-                Property(
-                    displayName='Lead_status_id',
-                    name=Parameters.lead_status_id,
-                    type=Property.Type.NUMBER,
-                    description='Этап воронки продаж',
-                ),
-                Property(
-                    displayName='Page',
-                    name=Parameters.page,
-                    type=Property.Type.NUMBER,
-                    description='Этап воронки продаж',
-                ),
-            ]
+                OptionValue(name='By name',value='name'),
+                OptionValue(name='By upload date', value='date')
+            ],
+            displayOptions=DisplayOptions(
+                show={
+                    'operation': [
+                    'get'
+                    ]
+                },
+            ),
+        ),
+        Property(
+            displayName='Limit output',
+            name='limit',
+            type=Property.Type.NUMBER,
+            description='Количество выводимых вложенных ресурсов',
+            displayOptions=DisplayOptions(
+                show={
+                    'operation': [
+                    'get'
+                    ]
+                },
+            ),
         ),
     ]
 
@@ -189,56 +123,39 @@ class InfoView(info.Info):
 
 
 class ExecuteView(execute.Execute):
-    async def post(self, json: NodeRunContext) -> dict:
+    async def post(self, json: NodeRunContext) -> NodeRunContext:
         properties = json.node.data.properties
-        option = properties['option']
-        host_name = properties['host_name']
-        if option == Option.authentication:
-            try:
-                email = properties['email']
-                key = properties['key']
-                url = f'https://{host_name}/v2api/auth/login'
-                data = {"email":email, "api_key":key}
-                request = get_request(url, data, Request.Method.post)
-                response = await request.execute()
-                result = validate_response(response)
-                await json.save_result(result)
-                json.state = RunState.complete
-            except Exception as e:
-                self.log.warning(f'Error {e}')
-                await json.save_error(str(e))
-                json.state = RunState.error
-            return json
+        operation = properties['operation']
+        token = properties['token']
+        base_url = 'https://cloud-api.yandex.net/v1/disk/resources'
+        if operation == 'upload':
+            url = properties['url'][0].get("path")
+            path = properties['path']
+            url = urllib.parse.quote(url, safe='')
+            path = urllib.parse.quote(path, safe='')
+            request_url = base_url + f'/{operation}?path={path}&url={url}' 
+            headers = {'Authorization': f'OAuth {token}'}
+            request = get_request(str(request_url), Request.Method.post, headers=headers)
+            response = await request.execute()
+            result = validate_response(response, correct_code=202)
+            await json.save_result(result)
         else:
-            token = properties["token"].get("token")
-            operation = properties["operation"]
-            branch = properties["branch"]
-            url = f'https://uiscom.s20.online/v2api/{branch}/customer/{operation}'
-            try:
-                header = {'X-ALFACRM-TOKEN': token}
-                params = properties["parameters"]
-                data = get_request_params(params)
-                if 'is_study' in data:
-                    data['is_study'] = int(data['is_study'])
-                request = get_request(
-                    url=url, 
-                    method=Request.Method.post, 
-                    data=data,
-                    headers=header
-                )
-                response = await request.execute()
-                result = validate_response(response)
-                await json.save_result(result)
-                json.state = RunState.complete
-            except Exception as e:
-                self.log.warning(f'Error {e}')
-                await json.save_error(str(e))
-                json.state = RunState.error
-            return json
+            sorting = properties['sorting']
+            operation = 'files' if sorting == 'name' else 'last-uploaded'
+            request_url = base_url + f'/{operation}'
+            if 'limit' in properties:
+                request_url += f"?limit={properties['limit']}"
+            headers = {'Authorization': f'OAuth {token}'}
+            request = get_request(str(request_url), Request.Method.get, headers=headers)
+            response = await request.execute()
+            result = validate_response(response)
+            await json.save_result(result['items'])
 
-        
+        json.state = RunState.complete
+        return json
+
+
 class Service(NodeService):
     class Routes(NodeService.Routes):
         Info = InfoView
         Execute = ExecuteView
-
